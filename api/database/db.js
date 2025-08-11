@@ -1,23 +1,28 @@
-const mysql = require('mysql2');
-const logger = require('../logger/logger.js');
-const messages = require('../utils/messages');
+const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
+const logger = require('../logger/logger');
+const messages = require('../utils/messages');
+
 dotenv.config();
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-});
-
-db.connect((err) => {
-  if (err) {
-    logger.error(messages.CONNECTION_FAILED);
-  } else {
-    logger.info(messages.CONNECTED);
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: process.env.DB_DIALECT || 'mysql',
   }
-});
+);
 
-module.exports = db;
+sequelize
+  .authenticate()
+  .then(() => {
+    logger.info(messages.CONNECTED);
+  })
+  .catch((err) => {
+    logger.warn(messages.CONNECTION_FAILED, err);
+  });
+
+module.exports = sequelize;
