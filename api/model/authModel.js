@@ -28,16 +28,23 @@ const User = sequelize.define(
     status: {
       type: DataTypes.ENUM(STATUS.ACTIVE, STATUS.DEACTIVE),
       allowNull: false,
+      defaultValue: STATUS.ACTIVE,
     },
     role: {
       type: DataTypes.ENUM(ROLE.USER, ROLE.ADMIN),
       allowNull: false,
+      defaultValue: ROLE.USER,
+    },
+    is_deleted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
   },
   {
     timestamps: true,
     tableName: 'users',
-  }
+  },
 );
 
 module.exports = User;

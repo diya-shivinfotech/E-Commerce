@@ -36,7 +36,12 @@ const registerUser = async (req, res) => {
 
     const imageUpload = req.file ? req.file.filename : profile_image || null;
 
-    const emailExists = await User.findOne({ where: { email } });
+    const emailExists = await User.findOne({ where: { 
+      email, 
+      status: STATUS.ACTIVE,
+      is_deleted: false 
+    } 
+  });
 
     if (emailExists) {
       logger.warn(`Email ${messages.ALREADY_EXISTS}`);
@@ -47,7 +52,12 @@ const registerUser = async (req, res) => {
       );
     }
 
-    const phoneExists = await User.findOne({ where: { phone_number } });
+    const phoneExists = await User.findOne({ where: { 
+      phone_number,
+      status: STATUS.ACTIVE,
+      is_deleted: false  
+    } 
+  });
     if (phoneExists) {
       logger.warn(`Phone number ${messages.ALREADY_EXISTS}`);
       return responseHandler.error(
@@ -101,23 +111,19 @@ const loginUser = async (req, res) => {
 
     const { email, password } = req.body;
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { 
+      email, 
+      status: STATUS.ACTIVE,
+      is_deleted: false  
+    } 
+  });
 
     if (!user) {
-      logger.warn(`Email ${messages.IS_INVALID}`);
-      return responseHandler.error(
-        res,
-        `Email ${messages.IS_INVALID}`,
-        StatusCodes.UNAUTHORIZED
-      );
-    }
-
-    if (user.status !== STATUS.ACTIVE) {
       logger.warn(`Email ${messages.NOT_FOUND}`);
       return responseHandler.error(
         res,
         `Email ${messages.NOT_FOUND}`,
-        StatusCodes.FORBIDDEN
+        StatusCodes.UNAUTHORIZED
       );
     }
 
@@ -164,7 +170,7 @@ const viewProfile = async (req, res) => {
         'status',
         'role',
       ],
-      where: { email, status: STATUS.ACTIVE },
+      where: { email, status: STATUS.ACTIVE, is_deleted: false },
     });
 
     if (!result) {
@@ -200,7 +206,7 @@ const editProfile = async (req, res) => {
     const profile_image = req.file ? req.file.filename : null;
 
     const user = await User.findOne({
-      where: { id: userId, status: STATUS.ACTIVE },
+      where: { id: userId, status: STATUS.ACTIVE, is_deleted: false   },
     });
 
     if (!user) {
@@ -249,7 +255,7 @@ const changePassword = async (req, res) => {
     const { old_password, new_password } = req.body;
     const email = req.user.email;
 
-    const user = await User.findOne({ where : { email, status: STATUS.ACTIVE } });
+    const user = await User.findOne({ where : { email, status: STATUS.ACTIVE, is_deleted: false   } });
 
     if (!user) {
       logger.warn(`User ${messages.NOT_FOUND}`);
@@ -331,7 +337,7 @@ const resetPassword = async (req, res) => {
   try {
 
     const user = await User.findOne({
-      where: { email, status: STATUS.ACTIVE }
+      where: { email, status: STATUS.ACTIVE, is_deleted: false   }
     });
 
     if (!user) {
