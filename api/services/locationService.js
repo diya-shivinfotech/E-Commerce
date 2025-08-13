@@ -10,7 +10,6 @@ const { listStatesSchema, listCitiesSchema } = require('../validation/locationVa
 const listOfCountries = async (req, res) => {
   try {
     const countries = await Country.findAll({
-      where: { is_deleted: false },
       attributes: ['id', 'country_name'],
       order: [['country_name', 'ASC']],
     });
@@ -47,7 +46,6 @@ const listOfStates = async (req, res) => {
 
     const states = await State.findAll({
       where: {
-        is_deleted: false,
         country_id: country_id,
       },
       include: [
@@ -102,7 +100,6 @@ const listOfCities = async (req, res) => {
 
     const cities = await City.findAll({
       where: {
-        is_deleted: false,
         state_id : state_id ,
       },
       include: [
