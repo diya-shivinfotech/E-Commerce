@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const Country = require('../model/countryModel');
-const {State} = require('../model/stateModel');
-const {City} = require('../model/cityModel');
+const { State } = require('../model/stateModel');
+const { City } = require('../model/cityModel');
 const responseHandler = require('../utils/responseHandler');
 const messages = require('../utils/messages');
 const logger = require('../logger/logger');
@@ -19,21 +19,16 @@ const listOfCountries = async (req, res) => {
       res,
       `Country fetched ${messages.IS_SUCCESS}`,
       { countries },
-      StatusCodes.OK
+      StatusCodes.OK,
     );
   } catch {
     logger.warn(messages.SOMETHING_WENT_WRONG);
-    return responseHandler.error(
-      res,
-      messages.SOMETHING_WENT_WRONG,
-      StatusCodes.BAD_REQUEST
-    );
+    return responseHandler.error(res, messages.SOMETHING_WENT_WRONG, StatusCodes.BAD_REQUEST);
   }
 };
 
 const listOfStates = async (req, res) => {
   try {
-
     const { error } = listStatesSchema.validate(req.body);
 
     if (error) {
@@ -46,12 +41,12 @@ const listOfStates = async (req, res) => {
 
     const states = await State.findAll({
       where: {
-        country_id: country_id,
+        country_id,
       },
       include: [
         {
           model: Country,
-          as: 'country', 
+          as: 'country',
           attributes: ['id', 'country_name'],
         },
       ],
@@ -61,11 +56,7 @@ const listOfStates = async (req, res) => {
 
     if (!states || states.length === 0) {
       logger.info(`States ${messages.NOT_FOUND} ${country_id}`);
-      return responseHandler.error(
-        res,
-        `States ${messages.NOT_FOUND}`,
-        StatusCodes.NOT_FOUND
-      );
+      return responseHandler.error(res, `States ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
     logger.info(`States fetched ${messages.Is_SUCCESS}`);
@@ -73,21 +64,20 @@ const listOfStates = async (req, res) => {
       res,
       `States fetched ${messages.Is_SUCCESS}`,
       { states },
-      StatusCodes.OK
+      StatusCodes.OK,
     );
-  } catch(error) {
-    logger.error(error.message|| messages.SOMETHING_WENT_WRONG);
+  } catch (error) {
+    logger.error(error.message || messages.SOMETHING_WENT_WRONG);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };
 
 const listOfCities = async (req, res) => {
   try {
-
     const { error } = listCitiesSchema.validate(req.body);
 
     if (error) {
@@ -100,12 +90,12 @@ const listOfCities = async (req, res) => {
 
     const cities = await City.findAll({
       where: {
-        state_id : state_id ,
+        state_id,
       },
       include: [
         {
           model: State,
-          as: 'state', 
+          as: 'state',
           attributes: ['id', 'state_name'],
         },
       ],
@@ -115,11 +105,7 @@ const listOfCities = async (req, res) => {
 
     if (!cities || cities.length === 0) {
       logger.info(`City ${messages.NOT_FOUND} ${state_id}`);
-      return responseHandler.error(
-        res,
-        `City ${messages.NOT_FOUND}`,
-        StatusCodes.NOT_FOUND
-      );
+      return responseHandler.error(res, `City ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
     logger.info(`City fetched ${messages.Is_SUCCESS}`);
@@ -127,14 +113,14 @@ const listOfCities = async (req, res) => {
       res,
       `City fetched ${messages.Is_SUCCESS}`,
       { cities },
-      StatusCodes.OK
+      StatusCodes.OK,
     );
-  } catch(error) {
-    logger.error(error.message||messages.SOMETHING_WENT_WRONG);
+  } catch (error) {
+    logger.error(error.message || messages.SOMETHING_WENT_WRONG);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };
