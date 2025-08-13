@@ -1,23 +1,19 @@
+const { Op } = require('sequelize');
 const getPaginationParams = (body, searchableFields = []) => {
   const page = parseInt(body.page) || 1;
   const limit = parseInt(body.limit) || 10;
   const skip = (page - 1) * limit;
-
   const sortColumn = body.sortColumn?.trim() || 'createdAt';
-  const sortOrder = body.sortOrder?.toLowerCase() === 'asc' ? 1 : -1;
+  const sortOrder = body.sortOrder?.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
   const search = body.search?.trim() || '';
 
   let filter = {};
   if (search && searchableFields.length > 0) {
-    filter.$or = searchableFields.map((field) => ({
-      [field]: { $regex: search, $options: 'i' },
+    filter[Op.or] = searchableFields.map((field) => ({
+      [field]: { [Op.like]: `%${search}%` }
     }));
   }
-
-  const sort = {};
-  if (sortColumn) {
-    sort[sortColumn] = sortOrder;
-  }
+  const sort = [[sortColumn, sortOrder]];
 
   return { page, limit, skip, sort, filter };
 };
