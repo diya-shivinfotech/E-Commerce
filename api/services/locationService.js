@@ -14,10 +14,10 @@ const listOfCountries = async (req, res) => {
       order: [['country_name', 'ASC']],
     });
 
-    logger.info(`Country fetched ${messages.IS_SUCCESS}`);
+    logger.info(`Country fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Country fetched ${messages.IS_SUCCESS}`,
+      `Country fetched ${messages.Is_SUCCESS}`,
       { countries },
       StatusCodes.OK,
     );
@@ -41,7 +41,8 @@ const listOfStates = async (req, res) => {
 
     const states = await State.findAll({
       where: {
-        country_id,
+        is_deleted: false,
+        country_id: country_id,
       },
       include: [
         {
@@ -90,7 +91,8 @@ const listOfCities = async (req, res) => {
 
     const cities = await City.findAll({
       where: {
-        state_id,
+        is_deleted: false,
+        state_id : state_id ,
       },
       include: [
         {

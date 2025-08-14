@@ -57,9 +57,6 @@ const userValidation = Joi.object({
     'string.empty': 'Role is required.',
     'any.required': 'Role is required.',
   }),
-  is_deleted: Joi.boolean().default(false).messages({
-    'boolean.base': 'Is deleted must be a boolean.',
-  }),
 });
 
 const loginValidation = Joi.object({

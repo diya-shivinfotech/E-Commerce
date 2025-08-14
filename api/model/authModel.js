@@ -37,7 +37,7 @@ const User = sequelize.define(
     },
     is_deleted: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
       defaultValue: false
     },
   },
