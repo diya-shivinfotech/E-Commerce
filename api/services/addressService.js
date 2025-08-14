@@ -204,24 +204,17 @@ const updateAddress = async (req, res) => {
 
 const deleteAddress = async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
+    const id = req.params.id;
 
-    const address = await Address.findOne({
-      where: {
-        id,
-        is_deleted: false
-      }
-    });
+    const address = await Address.update(
+      { is_deleted: true },
+      { where: { id, is_deleted: false } }
+    );
 
-    if (!address) {
+    if (address == 0) {
       logger.warn(`Address ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Address ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
-
-    await Address.update(
-      { is_deleted: true },
-      { where: { id } }
-    );
 
     logger.info(`Address deleted ${messages.Is_SUCCESS}`);
     return responseHandler.success(

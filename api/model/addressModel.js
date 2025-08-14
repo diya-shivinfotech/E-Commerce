@@ -9,7 +9,7 @@ const Address = sequelize.define(
   'Address',
   {
     user_id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: User,
@@ -17,7 +17,7 @@ const Address = sequelize.define(
       },
     },
     country_id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: Country,
@@ -25,7 +25,7 @@ const Address = sequelize.define(
       },
     },
     state_id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: State,
@@ -33,7 +33,7 @@ const Address = sequelize.define(
       },
     },
     city_id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: City,
@@ -54,7 +54,7 @@ const Address = sequelize.define(
     },
     is_deleted: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
       defaultValue: false,
     },
   },

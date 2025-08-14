@@ -1,16 +1,16 @@
 const joi = require('joi');
 
 const addressValidation = joi.object({
-  country_id: joi.string().required().messages({
-    'string.base': 'Country ID must be a string.',
+  country_id: joi.number().required().messages({
+    'number.base': 'Country ID must be a number.',
     'any.required': 'Country ID is required.',
   }),
-  state_id: joi.string().required().messages({
-    'string.base': 'State ID must be a string.',
+  state_id: joi.number().required().messages({
+    'number.base': 'State ID must be a number.',
     'any.required': 'State ID is required.',
   }),
-  city_id: joi.string().required().messages({
-    'string.base': 'City ID must be a string.',
+  city_id: joi.number().required().messages({
+    'number.base': 'City ID must be a number.',
     'any.required': 'City ID is required.',
   }),
   address_line1: joi.string().required().messages({
@@ -32,19 +32,16 @@ const addressValidation = joi.object({
         'number.max': 'Zip code must be exactly 6 digits.',
         'any.required': 'Zip code is required.',
     }),
-  is_deleted: joi.boolean().default(false).messages({
-    'boolean.base': 'Is deleted must be a boolean.',
-  }),
 });
 
 const updateAddressValidation = joi.object({
-  country_id: joi.string().required().optional({
+  country_id: joi.number().required().optional({
     'string.base': 'Country ID must be a string.',
   }),
-  state_id: joi.string().optional().messages({
+  state_id: joi.number().optional().messages({
     'string.base': 'State ID must be a string.',
   }),
-  city_id: joi.string().optional().messages({
+  city_id: joi.number().optional().messages({
     'string.base': 'City ID must be a string.',
   }),
   address_line1: joi.string().optional().messages({
@@ -64,9 +61,6 @@ const updateAddressValidation = joi.object({
         'number.min': 'Zip code must be exactly 6 digits.',
         'number.max': 'Zip code must be exactly 6 digits.',
     }),
-  is_deleted: joi.boolean().default(false).messages({
-    'boolean.base': 'Is deleted must be a boolean.',
-  }),
 });
 
 module.exports ={
