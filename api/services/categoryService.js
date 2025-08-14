@@ -142,23 +142,17 @@ const updateCategory = async (req, res) => {
 
     const id = req.params.id;
 
-    const categoryExists = await Category.findOne({
+    const category = await Category.update(req.body, {
       where: {
         id,
         is_deleted: false,
       },
     });
 
-    if (!categoryExists) {
+    if (category == 0) {
       logger.warn(`Category ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Category ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
-
-    await Category.update(req.body, {
-      where: {
-        id,
-      },
-    });
 
     logger.info(`Category updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(

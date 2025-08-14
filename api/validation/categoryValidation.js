@@ -2,7 +2,7 @@ const joi = require('joi');
 
 const categoryValidation = joi.object({
   name: joi.string().trim().required().min(3).messages({
-    'string.empty': 'Category name is required.',
+    'string.base': 'Category name must be in string',
     'any.required': 'Category name is required.',
     'string.min': 'Name must be at least 3 characters long.',
   }),

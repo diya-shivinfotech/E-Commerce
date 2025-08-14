@@ -163,7 +163,7 @@ const updateAddress = async (req, res) => {
     const id = req.params.id;
     const user_id = req.user.id;
 
-    const addressExists = await Address.findOne({
+    const address = await Address.update(req.body, {
       where: {
         id,
         user_id,
@@ -171,16 +171,10 @@ const updateAddress = async (req, res) => {
       },
     });
 
-    if (!addressExists) {
+    if (address == 0) {
       logger.warn(`Address ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Address ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
-
-    await Address.update(req.body, {
-      where: {
-        id,
-      },
-    });
 
     logger.info(`Address updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
