@@ -16,7 +16,7 @@ const emailOtp = sequelize.define(
   {
     tableName: 'email_otps',
     timestamps: true,
-  }
+  },
 );
 
 module.exports = emailOtp;

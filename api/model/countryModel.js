@@ -12,7 +12,7 @@ const Country = sequelize.define(
   {
     timestamps: true,
     tableName: 'countries',
-  }
+  },
 );
 
 module.exports = Country;

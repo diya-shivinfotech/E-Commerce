@@ -49,7 +49,7 @@ const Address = sequelize.define(
       allowNull: true,
     },
     zip_code: {
-      type: DataTypes.NUMBER, 
+      type: DataTypes.NUMBER,
       allowNull: false,
     },
     is_deleted: {
@@ -61,7 +61,7 @@ const Address = sequelize.define(
   {
     timestamps: true,
     tableName: 'addresses',
-  }
+  },
 );
 
 Address.belongsTo(User, { foreignKey: 'user_id', as: 'user' });

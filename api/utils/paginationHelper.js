@@ -10,7 +10,7 @@ const getPaginationParams = (body, searchableFields = []) => {
   let filter = {};
   if (search && searchableFields.length > 0) {
     filter[Op.or] = searchableFields.map((field) => ({
-      [field]: { [Op.like]: `%${search}%` }
+      [field]: { [Op.like]: `%${search}%` },
     }));
   }
   const sort = [[sortColumn, sortOrder]];

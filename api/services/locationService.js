@@ -92,7 +92,7 @@ const listOfCities = async (req, res) => {
     const cities = await City.findAll({
       where: {
         is_deleted: false,
-        state_id : state_id ,
+        state_id: state_id,
       },
       include: [
         {

@@ -1,8 +1,8 @@
-const  Address  = require('../model/addressModel'); 
+const Address = require('../model/addressModel');
 const User = require('../model/authModel');
-const {City} = require('../model/cityModel');
-const {State }= require('../model/stateModel');
-const Country = require('../model/countryModel')
+const { City } = require('../model/cityModel');
+const { State } = require('../model/stateModel');
+const Country = require('../model/countryModel');
 const logger = require('../logger/logger');
 const responseHandler = require('../utils/responseHandler');
 const { StatusCodes } = require('http-status-codes');
@@ -12,7 +12,6 @@ const { getPaginationParams, formatPaginationResult } = require('../utils/pagina
 
 const addAddress = async (req, res) => {
   try {
-
     const { error } = addressValidation.validate(req.body);
 
     if (error) {
@@ -39,14 +38,14 @@ const addAddress = async (req, res) => {
       res,
       `Address added ${messages.Is_SUCCESS}`,
       null,
-      StatusCodes.CREATED
+      StatusCodes.CREATED,
     );
   } catch (err) {
     logger.error(err.message || messages.SOMETHING_WENT_WRONG);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };
@@ -81,8 +80,8 @@ const listOfAddress = async (req, res) => {
       order: [sort],
       offset: skip,
       limit,
-      raw: true, 
-      nest: true 
+      raw: true,
+      nest: true,
     });
 
     if (totalCount === 0) {
@@ -97,14 +96,14 @@ const listOfAddress = async (req, res) => {
       res,
       `Address list fetched ${messages.Is_SUCCESS}`,
       paginatedData,
-      StatusCodes.OK
+      StatusCodes.OK,
     );
   } catch (err) {
     logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };
@@ -112,7 +111,7 @@ const listOfAddress = async (req, res) => {
 const viewAddress = async (req, res) => {
   try {
     const { id } = req.params;
-    const user_id = req.user.id; 
+    const user_id = req.user.id;
     const address = await Address.findOne({
       where: {
         id,
@@ -127,7 +126,7 @@ const viewAddress = async (req, res) => {
         { model: City, as: 'city', attributes: ['city_name'], required: false },
       ],
       raw: true,
-      nest: true
+      nest: true,
     });
 
     if (!address) {
@@ -140,21 +139,20 @@ const viewAddress = async (req, res) => {
       res,
       `Address details fetched ${messages.Is_SUCCESS}`,
       address,
-      StatusCodes.OK
+      StatusCodes.OK,
     );
   } catch (err) {
     logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };
 
 const updateAddress = async (req, res) => {
   try {
-
     const { error } = updateAddressValidation.validate(req.body);
 
     if (error) {
@@ -163,41 +161,34 @@ const updateAddress = async (req, res) => {
     }
 
     const id = req.params.id;
-    const user_id = req.user.id; 
+    const user_id = req.user.id;
 
-    const addressExists = await Address.findOne({
+    const address = await Address.update(req.body, {
       where: {
         id,
-        user_id, 
-        is_deleted: false
-      }
+        user_id,
+        is_deleted: false,
+      },
     });
 
-    if (!addressExists) {
+    if (address == 0) {
       logger.warn(`Address ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Address ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
-
-    await Address.update(req.body, {
-      where: {
-        id
-      }
-    });
 
     logger.info(`Address updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
       `Address updated ${messages.Is_SUCCESS}`,
       null,
-      StatusCodes.ACCEPTED
+      StatusCodes.ACCEPTED,
     );
-
   } catch (err) {
     logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };
@@ -208,7 +199,7 @@ const deleteAddress = async (req, res) => {
 
     const address = await Address.update(
       { is_deleted: true },
-      { where: { id, is_deleted: false } }
+      { where: { id, is_deleted: false } },
     );
 
     if (address == 0) {
@@ -221,15 +212,14 @@ const deleteAddress = async (req, res) => {
       res,
       `Address deleted ${messages.Is_SUCCESS}`,
       null,
-      StatusCodes.OK
+      StatusCodes.OK,
     );
-
   } catch (err) {
     logger.error(err.message || messages.SOMETHING_WENT_WRONG);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };

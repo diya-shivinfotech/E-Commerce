@@ -1,6 +1,6 @@
 const ROLE = {
   USER: 'User',
-  ADMIN: 'Admin'
+  ADMIN: 'Admin',
 };
 
 const STATUS = {
