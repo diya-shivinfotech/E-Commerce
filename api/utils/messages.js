@@ -21,6 +21,6 @@ module.exports = {
   VERIFICATION: 'verification code',
   EMAIL_NOT_VERIFIED: 'Please verify your email before resetting password.',
   SOMETHING_WENT_WRONG: 'Something went wrong. Please try again.',
-  ACCESS_DENIED : 'Access denied, you do not have access.',
-  UNAUTHORIZED : 'Unauthorized access.',
+  ACCESS_DENIED: 'Access denied, you do not have access.',
+  UNAUTHORIZED: 'Unauthorized access.',
 };

@@ -20,18 +20,12 @@ const addressValidation = joi.object({
   address_line2: joi.string().optional().messages({
     'string.base': 'Address line 2 must be a string.',
   }),
-    zip_code: joi
-    .number()
-    .integer()
-    .min(100000)
-    .max(999999)
-    .required()
-    .messages({
-        'number.base': 'Zip code must be a Number.',
-        'number.min': 'Zip code must be exactly 6 digits.',
-        'number.max': 'Zip code must be exactly 6 digits.',
-        'any.required': 'Zip code is required.',
-    }),
+  zip_code: joi.number().integer().min(100000).max(999999).required().messages({
+    'number.base': 'Zip code must be a Number.',
+    'number.min': 'Zip code must be exactly 6 digits.',
+    'number.max': 'Zip code must be exactly 6 digits.',
+    'any.required': 'Zip code is required.',
+  }),
 });
 
 const updateAddressValidation = joi.object({
@@ -50,20 +44,14 @@ const updateAddressValidation = joi.object({
   address_line2: joi.string().optional().messages({
     'string.base': 'Address line 2 must be a string.',
   }),
-    zip_code: joi
-    .number()
-    .integer()
-    .min(100000)
-    .max(999999)
-    .optional()
-    .messages({
-        'number.base': 'Zip code must be a Number.',
-        'number.min': 'Zip code must be exactly 6 digits.',
-        'number.max': 'Zip code must be exactly 6 digits.',
-    }),
+  zip_code: joi.number().integer().min(100000).max(999999).optional().messages({
+    'number.base': 'Zip code must be a Number.',
+    'number.min': 'Zip code must be exactly 6 digits.',
+    'number.max': 'Zip code must be exactly 6 digits.',
+  }),
 });
 
-module.exports ={
-    addressValidation,
-    updateAddressValidation
-}
+module.exports = {
+  addressValidation,
+  updateAddressValidation,
+};

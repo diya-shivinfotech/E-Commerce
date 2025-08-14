@@ -16,11 +16,7 @@ const userValidation = Joi.object({
 
   password: Joi.string()
     .min(6)
-    .pattern(
-      new RegExp(
-        '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$'
-      )
-    )
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$'))
     .required()
     .messages({
       'string.empty': 'Password is required.',
@@ -46,17 +42,23 @@ const userValidation = Joi.object({
 
   profile_image: Joi.string().allow('', null),
 
-  status: Joi.string().valid(...Object.values(STATUS)).required().messages({
-    'any.only': `Status must be one of: ${Object.values(STATUS).join(', ')}`,
-    'string.empty': 'Status is required.',
-    'any.required': 'Status is required.',
-  }),
+  status: Joi.string()
+    .valid(...Object.values(STATUS))
+    .required()
+    .messages({
+      'any.only': `Status must be one of: ${Object.values(STATUS).join(', ')}`,
+      'string.empty': 'Status is required.',
+      'any.required': 'Status is required.',
+    }),
 
-  role: Joi.string().valid(...Object.values(ROLE)).required().messages({
-    'any.only': `Role must be one of: ${Object.values(ROLE).join(', ')}`,
-    'string.empty': 'Role is required.',
-    'any.required': 'Role is required.',
-  }),
+  role: Joi.string()
+    .valid(...Object.values(ROLE))
+    .required()
+    .messages({
+      'any.only': `Role must be one of: ${Object.values(ROLE).join(', ')}`,
+      'string.empty': 'Role is required.',
+      'any.required': 'Role is required.',
+    }),
 });
 
 const loginValidation = Joi.object({
@@ -67,17 +69,13 @@ const loginValidation = Joi.object({
   }),
   password: Joi.string()
     .min(6)
-    .pattern(
-      new RegExp(
-        '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$'
-      )
-    )
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$'))
     .required()
     .messages({
       'string.empty': 'Password is required.',
       'string.min': 'Password must be at least 6 characters long.',
       'string.pattern.base':
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
       'any.required': 'Password is required.',
     }),
 });
@@ -93,21 +91,17 @@ const changePasswordValidation = Joi.object({
     'any.required': 'New password is required.',
   }),
 
-  confirm_password: Joi.string()
-    .required()
-    .valid(Joi.ref('new_password'))
-    .messages({
-      'any.only': 'New password and confirm password do not match.',
-      'string.empty': 'Confirm password is required.',
-      'any.required': 'Confirm password is required.',
-    }),
+  confirm_password: Joi.string().required().valid(Joi.ref('new_password')).messages({
+    'any.only': 'New password and confirm password do not match.',
+    'string.empty': 'Confirm password is required.',
+    'any.required': 'Confirm password is required.',
+  }),
 }).custom((value, helpers) => {
   if (value.old_password === value.new_password) {
     return helpers.message('New password must not be same as old password.');
   }
   return value;
 });
-
 
 const resetPasswordSchema = Joi.object({
   email: Joi.string().email().required().messages({
@@ -139,4 +133,4 @@ const resetPasswordSchema = Joi.object({
   }),
 });
 
-module.exports = {userValidation, loginValidation, changePasswordValidation, resetPasswordSchema};
+module.exports = { userValidation, loginValidation, changePasswordValidation, resetPasswordSchema };

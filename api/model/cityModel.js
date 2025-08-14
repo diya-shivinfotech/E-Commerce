@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
-const {State }= require('./stateModel');
+const { State } = require('./stateModel');
 
 const City = sequelize.define(
   'City',
@@ -8,7 +8,7 @@ const City = sequelize.define(
     state_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-        references: {
+      references: {
         model: State,
         key: 'id',
       },
@@ -21,9 +21,9 @@ const City = sequelize.define(
   {
     timestamps: true,
     tableName: 'cities',
-  }
+  },
 );
 
 City.belongsTo(State, { foreignKey: 'state_id', as: 'state' });
 
-module.exports = {City};
+module.exports = { City };
