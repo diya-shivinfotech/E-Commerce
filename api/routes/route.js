@@ -4,10 +4,12 @@ const authRoute = require('./authRoute');
 const locationRoute = require('./locationRoute');
 const addressRoute = require('./addressRoute');
 const categoryRoute = require('./categoryRoute');
+const subCategoryRoute = require('./subCategoryRoute');
 
 router.use('/auth', authRoute);
 router.use('/location', locationRoute);
 router.use('/address', addressRoute);
 router.use('/category', categoryRoute);
+router.use('/subCategory', subCategoryRoute);
 
 module.exports = router;
