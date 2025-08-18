@@ -1,3 +1,5 @@
+const { NOT } = require('sequelize/lib/deferrable');
+
 const ROLE = {
   USER: 'User',
   ADMIN: 'Admin',
@@ -8,4 +10,9 @@ const STATUS = {
   DEACTIVE: 'Deactive',
 };
 
-module.exports = { ROLE, STATUS };
+const status = {
+  AVAILABLE: 'Available',
+  NOT_AVAILABLE: 'Not Available ',
+};
+
+module.exports = { ROLE, STATUS, status };

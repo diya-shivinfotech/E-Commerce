@@ -10,10 +10,11 @@ class GeneralResponse {
 
 const success = (res, message = 'Success', data = null, statusCode = 200) => {
   logger.info(message);
+
   const response = new GeneralResponse({
     message,
-    statusCode,
     data,
+    statusCode,
   });
   return res.status(statusCode).json(response);
 };
