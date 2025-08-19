@@ -1,21 +1,25 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
-const Category = require('./categoryModel');
+const subCategory = require('./subCategoryModel');
 
-const subCategory = sequelize.define(
-  'subCategory',
+const Product = sequelize.define(
+  'Product',
   {
-    category_id: {
+    sub_category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Category,
+        model: subCategory,
         key: 'id',
       },
     },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     is_deleted: {
       type: DataTypes.BOOLEAN,
@@ -25,10 +29,10 @@ const subCategory = sequelize.define(
   },
   {
     timestamps: true,
-    tableName: 'subCategories',
+    tableName: 'products',
   },
 );
 
-subCategory.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+Product.belongsTo(subCategory, { foreignKey: 'sub_category_id', as: 'subcategory' });
 
-module.exports = subCategory;
+module.exports = Product;
