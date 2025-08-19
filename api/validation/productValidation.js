@@ -1,7 +1,7 @@
 const joi = require('joi');
 
 const productValidation = joi.object({
-  subCategory_id: joi.number().required().messages({
+  sub_category_id: joi.number().required().messages({
     'number.base': 'Category ID must be a number.',
     'any.required': 'Category ID is required.',
   }),
@@ -16,7 +16,7 @@ const productValidation = joi.object({
 });
 
 const updateProductValidation = joi.object({
-  subCategory_id: joi.number().optional().messages({
+  sub_category_id: joi.number().optional().messages({
     'number.base': 'Sub-Category ID must be a number.',
   }),
   name: joi.string().trim().optional().min(3).messages({

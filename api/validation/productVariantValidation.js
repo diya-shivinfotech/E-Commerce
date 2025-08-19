@@ -6,7 +6,7 @@ const addProductVariantValidation = Joi.object({
     'number.base': 'Category ID must be a number.',
     'any.required': 'Category ID is required.',
   }),
-  subCategory_id: Joi.number().integer().required().messages({
+  sub_category_id: Joi.number().integer().required().messages({
     'number.base': 'Sub-category ID must be a number.',
     'any.required': 'Sub-category ID is required.',
   }),
@@ -57,7 +57,7 @@ const updateProductVariantValidation = Joi.object({
   category_id: Joi.number().integer().optional().messages({
     'number.base': 'Category ID must be a number.',
   }),
-  subCategory_id: Joi.number().integer().optional().messages({
+  sub_category_id: Joi.number().integer().optional().messages({
     'number.base': 'Sub-category ID must be a number.',
   }),
   product_id: Joi.number().integer().optional().messages({
