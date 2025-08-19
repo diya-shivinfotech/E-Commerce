@@ -5,7 +5,7 @@ const productVariant = require('./productVariantModel');
 const productVariantImage = sequelize.define(
   'productVariantImage',
   {
-    productVariant_id: {
+    product_variant_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -24,12 +24,12 @@ const productVariantImage = sequelize.define(
   },
 );
 productVariant.hasMany(productVariantImage, {
-  foreignKey: 'productVariant_id',
+  foreignKey: 'product_variant_id',
   as: 'images',
 });
 
 productVariantImage.belongsTo(productVariant, {
-  foreignKey: 'productVariant_id',
+  foreignKey: 'product_variant_id',
   as: 'productVariant',
 });
 
