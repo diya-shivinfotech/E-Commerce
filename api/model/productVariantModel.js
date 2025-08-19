@@ -16,7 +16,7 @@ const productVariant = sequelize.define(
         key: 'id',
       },
     },
-    subCategory_id: {
+    sub_category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -58,7 +58,6 @@ const productVariant = sequelize.define(
     },
     status: {
       type: DataTypes.ENUM(status.AVAILABLE, status.NOT_AVAILABLE),
-      allowNull: false,
       defaultValue: status.AVAILABLE,
     },
     is_deleted: {
@@ -74,7 +73,7 @@ const productVariant = sequelize.define(
 );
 
 productVariant.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
-productVariant.belongsTo(subCategory, { foreignKey: 'subCategory_id', as: 'subcategory' });
+productVariant.belongsTo(subCategory, { foreignKey: 'sub_category_id', as: 'subcategory' });
 productVariant.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
 module.exports = productVariant;

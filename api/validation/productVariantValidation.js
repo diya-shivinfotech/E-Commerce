@@ -6,7 +6,7 @@ const addProductVariantValidation = Joi.object({
     'number.base': 'Category ID must be a number.',
     'any.required': 'Category ID is required.',
   }),
-  subCategory_id: Joi.number().integer().required().messages({
+  sub_category_id: Joi.number().integer().required().messages({
     'number.base': 'Sub-category ID must be a number.',
     'any.required': 'Sub-category ID is required.',
   }),
@@ -40,14 +40,14 @@ const addProductVariantValidation = Joi.object({
     'number.base': 'Quantity must be a valid number.',
     'any.required': 'Quantity is required.',
   }),
-  status: Joi.string()
-    .valid(...Object.values(status))
-    .required()
-    .messages({
-      'any.only': `Status must be one of: ${Object.values(status).join(', ')}`,
-      'string.base': 'Status must be a string.',
-      'any.required': 'Status is required.',
-    }),
+    status: Joi.string()
+      .valid(...Object.values(status))
+      .default(status.AVAILABLE)
+      .messages({
+        'any.only': `Status must be one of: ${Object.values(status).join(', ')}`,
+        'string.base': 'Status must be a string.',
+        'any.required': 'Status is required.',
+      }),
   image: Joi.string().optional().allow('').messages({
     'string.base': 'Image must be a string (URL, path, or name).',
   }),
@@ -57,7 +57,7 @@ const updateProductVariantValidation = Joi.object({
   category_id: Joi.number().integer().optional().messages({
     'number.base': 'Category ID must be a number.',
   }),
-  subCategory_id: Joi.number().integer().optional().messages({
+  sub_category_id: Joi.number().integer().optional().messages({
     'number.base': 'Sub-category ID must be a number.',
   }),
   product_id: Joi.number().integer().optional().messages({
