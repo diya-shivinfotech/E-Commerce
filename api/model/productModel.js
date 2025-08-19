@@ -5,7 +5,7 @@ const subCategory = require('./subCategoryModel');
 const Product = sequelize.define(
   'Product',
   {
-    subCategory_id: {
+    sub_category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -33,6 +33,6 @@ const Product = sequelize.define(
   },
 );
 
-Product.belongsTo(subCategory, { foreignKey: 'subCategory_id', as: 'subcategory' });
+Product.belongsTo(subCategory, { foreignKey: 'sub_category_id', as: 'subcategory' });
 
 module.exports = Product;
