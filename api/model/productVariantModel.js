@@ -74,7 +74,7 @@ const productVariant = sequelize.define(
 );
 
 productVariant.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
-productVariant.belongsTo(subCategory, { foreignKey: 'subCategory_id', as: 'subCategory' });
+productVariant.belongsTo(subCategory, { foreignKey: 'subCategory_id', as: 'subcategory' });
 productVariant.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
 module.exports = productVariant;

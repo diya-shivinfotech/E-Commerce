@@ -81,7 +81,7 @@ const listOfProductVariant = async (req, res) => {
     const searchableFields = [
       '$product.name$',
       '$category.name$',
-      '$subCategory.name$',
+      '$subcategory.name$',
       'color',
       'size',
       'style',
@@ -101,7 +101,7 @@ const listOfProductVariant = async (req, res) => {
       include: [
         { model: Product, as: 'product', attributes: ['name'], required: false },
         { model: Category, as: 'category', attributes: ['name'], required: false },
-        { model: subCategory, as: 'subCategory', attributes: ['name'], required: false },
+        { model: subCategory, as: 'subcategory', attributes: ['name'], required: false },
         {
           model: productVariantImage,
           as: 'images',
@@ -112,12 +112,15 @@ const listOfProductVariant = async (req, res) => {
       order: [sort],
       offset: skip,
       limit,
+      nest: true,
+      subQuery: false,
+      distinct: true,
     });
 
     if (totalCount === 0) {
       logger.info(`Product Variant list ${messages.NOT_FOUND}`);
       return responseHandler.error(
-        SUCCESS,
+        res,
         `Product Variant list ${messages.NOT_FOUND}`,
         StatusCodes.NOT_FOUND,
       );
@@ -125,11 +128,10 @@ const listOfProductVariant = async (req, res) => {
 
     const paginatedData = formatPaginationResult(totalCount, page, limit, variants);
 
-    logger.info(`Product Variant list fetched ${messages.Is_SUCCESS}`);
-
+    logger.info(`Product Variant list fetched ${messages.IS_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Product Variant list fetched ${messages.Is_SUCCESS}`,
+      `Product Variant list fetched ${messages.IS_SUCCESS}`,
       paginatedData,
       StatusCodes.OK,
     );
@@ -156,7 +158,7 @@ const viewProductVariant = async (req, res) => {
       include: [
         { model: Product, as: 'product', attributes: ['name'], required: false },
         { model: Category, as: 'category', attributes: ['name'], required: false },
-        { model: subCategory, as: 'subCategory', attributes: ['name'], required: false },
+        { model: subCategory, as: 'subcategory', attributes: ['name'], required: false },
         { model: productVariantImage, as: 'images', attributes: ['image'], required: false },
       ],
       raw: true,
@@ -237,7 +239,7 @@ const deleteProductVariant = async (req, res) => {
 
     const deletedVariant = await productVariant.update(
       { is_deleted: true },
-      { where: { id, is_deleted: false } }
+      { where: { id, is_deleted: false } },
     );
 
     if (deletedVariant == 0) {
@@ -245,7 +247,7 @@ const deleteProductVariant = async (req, res) => {
       return responseHandler.error(
         res,
         `Product Variant ${messages.NOT_FOUND}`,
-        StatusCodes.NOT_FOUND
+        StatusCodes.NOT_FOUND,
       );
     }
 
@@ -254,14 +256,14 @@ const deleteProductVariant = async (req, res) => {
       res,
       `Product Variant deleted ${messages.Is_SUCCESS}`,
       null,
-      StatusCodes.OK
+      StatusCodes.OK,
     );
   } catch (err) {
     logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
-      StatusCodes.INTERNAL_SERVER_ERROR
+      StatusCodes.INTERNAL_SERVER_ERROR,
     );
   }
 };

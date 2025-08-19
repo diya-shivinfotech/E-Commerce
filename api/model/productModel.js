@@ -3,7 +3,7 @@ const sequelize = require('../database/db');
 const subCategory = require('./subCategoryModel');
 
 const Product = sequelize.define(
-  'Product ',
+  'Product',
   {
     subCategory_id: {
       type: DataTypes.INTEGER,

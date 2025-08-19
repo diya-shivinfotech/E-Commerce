@@ -1,4 +1,5 @@
-const { Op } = require('sequelize');
+const { Op, col, where } = require('sequelize');
+
 const getPaginationParams = (body, searchableFields = []) => {
   const page = parseInt(body.page) || 1;
   const limit = parseInt(body.limit) || 10;
@@ -9,10 +10,18 @@ const getPaginationParams = (body, searchableFields = []) => {
 
   let filter = {};
   if (search && searchableFields.length > 0) {
-    filter[Op.or] = searchableFields.map((field) => ({
-      [field]: { [Op.like]: `%${search}%` },
-    }));
+    const searchConditions = searchableFields.map((field) => {
+      if (typeof field === 'string' && field.startsWith('$') && field.endsWith('$')) {
+        const path = field.slice(1, -1);
+        return where(col(path), { [Op.like]: `%${search}%` });
+      }
+      return { [field]: { [Op.like]: `%${search}%` } };
+    });
+    filter = {
+      [Op.or]: searchConditions,
+    };
   }
+
   const sort = [[sortColumn, sortOrder]];
 
   return { page, limit, skip, sort, filter };

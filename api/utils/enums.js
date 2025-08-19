@@ -1,5 +1,3 @@
-const { NOT } = require('sequelize/lib/deferrable');
-
 const ROLE = {
   USER: 'User',
   ADMIN: 'Admin',
