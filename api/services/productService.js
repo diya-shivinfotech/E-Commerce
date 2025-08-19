@@ -16,10 +16,10 @@ const addProduct = async (req, res) => {
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
     }
 
-    const { subCategory_id, name, description } = req.body;
+    const { sub_category_id, name, description } = req.body;
 
     await Product.create({
-      subCategory_id,
+      sub_category_id,
       name,
       description,
     });
@@ -182,7 +182,7 @@ const deleteProduct = async (req, res) => {
       res,
       `Product deleted ${messages.Is_SUCCESS}`,
       null,
-      StatusCodes.OK,
+      StatusCodes.ACCEPTED,
     );
   } catch (err) {
     logger.error(err.message || messages.SOMETHING_WENT_WRONG);
