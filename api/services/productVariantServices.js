@@ -24,7 +24,7 @@ const addProductVariant = async (req, res) => {
 
     const {
       category_id,
-      subCategory_id,
+      sub_category_id,
       product_id,
       color,
       size,
@@ -39,7 +39,7 @@ const addProductVariant = async (req, res) => {
 
     const createdVariant = await productVariant.create({
       category_id,
-      subCategory_id,
+      sub_category_id,
       product_id,
       color,
       size,
