@@ -3,7 +3,7 @@ const sequelize = require('../database/db');
 const Category = require('./categoryModel');
 
 const subCategory = sequelize.define(
-  'subCategory ',
+  'subCategory',
   {
     category_id: {
       type: DataTypes.INTEGER,
@@ -30,4 +30,5 @@ const subCategory = sequelize.define(
 );
 
 subCategory.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+
 module.exports = subCategory;
