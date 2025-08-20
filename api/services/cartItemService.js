@@ -9,7 +9,6 @@ const {
 const { getPaginationParams, formatPaginationResult } = require('../utils/paginationHelper');
 const Cart = require('../model/cartModel');
 const User = require('../model/authModel');
-const productVariant = require('../model/productVariantModel');
 const cartItem = require('../model/cartItemModel');
 
 const addCartItem = async (req, res) => {
