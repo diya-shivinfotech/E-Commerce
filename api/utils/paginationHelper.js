@@ -11,6 +11,7 @@ const getPaginationParams = (body, searchableFields = []) => {
   let filter = {};
   if (search && searchableFields.length > 0) {
     const searchConditions = searchableFields.map((field) => {
+      
       if (typeof field === 'string' && field.startsWith('$') && field.endsWith('$')) {
         const path = field.slice(1, -1);
         return where(col(path), { [Op.like]: `%${search}%` });
