@@ -11,6 +11,7 @@ const orderRoute = require('./orderRoute');
 const orderItemRoute = require('./orderItemRoute');
 const cartRoute = require('./cartRoute');
 const cartItemRoute = require('./cartItemRoute');
+const wishlistRoute = require('./wishlistRoute');
 
 router.use('/auth', authRoute);
 router.use('/location', locationRoute);
@@ -23,5 +24,6 @@ router.use('/order', orderRoute);
 router.use('/orderItem', orderItemRoute);
 router.use('/cart', cartRoute);
 router.use('/cartItem', cartItemRoute);
+router.use('/wishlist', wishlistRoute);
 
 module.exports = router;
