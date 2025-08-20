@@ -7,13 +7,6 @@ const cartValidation = Joi.object({
   }),
 });
 
-const updateCartValidation = Joi.object({
-  total_amount: Joi.number().required().messages({
-    'number.base': 'Total amount must be a number.',
-  }),
-});
-
 module.exports = {
   cartValidation,
-  updateCartValidation,
 };
