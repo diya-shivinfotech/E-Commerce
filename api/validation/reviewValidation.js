@@ -14,7 +14,7 @@ const reviewValidation = Joi.object({
   comments: Joi.string().optional().messages({
     'string.base': 'Comments must be a string.',
   }),
-  image: Joi.string().optional().allow('').messages({
+  images: Joi.string().optional().allow('').messages({
     'string.base': 'Image must be a string (URL, path, or name).',
   }),
 });
@@ -31,7 +31,7 @@ const updateReviewValidation = Joi.object({
   comments: Joi.string().optional().messages({
     'string.base': 'Comments must be a string.',
   }),
-  image: Joi.string().optional().allow('').messages({
+  images: Joi.string().optional().allow('').messages({
     'string.base': 'Image must be a string (URL, path, or name).',
   }),
 });

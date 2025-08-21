@@ -23,15 +23,15 @@ const Review = sequelize.define(
       },
     },
     ratings: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     comments: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    image: {
-      type: DataTypes.STRING,
+    images: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     is_deleted: {
@@ -46,7 +46,7 @@ const Review = sequelize.define(
   },
 );
 
-Review.belongsTo(User, { foreignKey: 'user_id', as: 'review' });
+Review.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 Review.belongsTo(productVariant, { foreignKey: 'product_variant_id', as: 'product_variant' });
 
 module.exports = Review;
