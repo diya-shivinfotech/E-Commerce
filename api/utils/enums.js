@@ -8,4 +8,9 @@ const STATUS = {
   DEACTIVE: 'Deactive',
 };
 
-module.exports = { ROLE, STATUS };
+const status = {
+  AVAILABLE: 'Available',
+  NOT_AVAILABLE: 'Not Available ',
+};
+
+module.exports = { ROLE, STATUS, status };
