@@ -85,7 +85,7 @@ const listOrders = async (req, res) => {
         {
           model: Address,
           as: 'address',
-          attributes: ['address_line1'],
+          attributes: ['address_line1', 'zip_code'],
           required: false,
         },
       ],
