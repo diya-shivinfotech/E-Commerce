@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
-const Product = require('./productModel');
 const Order = require('./orderModel');
+const ProductVariant = require('./productVariantModel');
 
 const orderItem = sequelize.define(
   'orderItem',
@@ -14,11 +14,11 @@ const orderItem = sequelize.define(
         key: 'id',
       },
     },
-    product_id: {
+    product_variant_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: Product,
+        model: ProductVariant,
         key: 'id',
       },
     },
@@ -42,8 +42,7 @@ const orderItem = sequelize.define(
   },
 );
 
-
 orderItem.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
-orderItem.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+orderItem.belongsTo(ProductVariant, { foreignKey: 'product_variant_id', as: 'product_variant' });
 
 module.exports = orderItem;

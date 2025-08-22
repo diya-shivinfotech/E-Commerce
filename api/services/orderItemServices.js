@@ -1,4 +1,5 @@
-const Product = require('../model/productModel');
+const ProductVariant = require('../model/productVariantModel');
+const OrderItem = require('../model/orderItemModel');
 const logger = require('../logger/logger');
 const responseHandler = require('../utils/responseHandler');
 const { StatusCodes } = require('http-status-codes');
@@ -8,7 +9,7 @@ const {
   updateOrderItemValidation,
 } = require('../validation/orderItemValidation');
 const { getPaginationParams, formatPaginationResult } = require('../utils/paginationHelper');
-const orderItem = require('../model/orderItemModel');
+const { Status } = require('../utils/enums');
 
 const addOrderItem = async (req, res) => {
   try {
@@ -19,19 +20,33 @@ const addOrderItem = async (req, res) => {
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
     }
 
-    const { order_id, product_id, quantity, unit_price } = req.body;
+    const { order_id, product_variant_id, quantity, unit_price } = req.body;
 
-    await orderItem.create({
+    const variant = await ProductVariant.findByPk(product_variant_id);
+    if (!variant || variant.is_deleted) {
+      logger.warn(messages.VARIANT_NOT_FOUND);
+      return responseHandler.error(res, messages.VARIANT_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+
+    if (variant.quantity < quantity) {
+      logger.warn(messages.INSUFFICIENT_STOCK);
+      return responseHandler.error(res, messages.INSUFFICIENT_STOCK, StatusCodes.BAD_REQUEST);
+    }
+
+    await variant.update({ quantity: variant.quantity - quantity });
+
+    await OrderItem.create({
       order_id,
-      product_id,
+      product_variant_id,
       quantity,
       unit_price,
+      status: Status.PROGRESS,
     });
 
-    logger.info(`Order item added ${messages.Is_SUCCESS}`);
+    logger.info(`Order Item added ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Order item added ${messages.Is_SUCCESS}`,
+      `Order Item added ${messages.Is_SUCCESS}`,
       null,
       StatusCodes.CREATED,
     );
@@ -47,19 +62,28 @@ const addOrderItem = async (req, res) => {
 
 const listOfOrderItem = async (req, res) => {
   try {
-    const searchableFields = ['quantity', 'unit_price', '$product.name$'];
+    const searchableFields = [
+      'quantity',
+      'unit_price',
+      '$productVariant.color$',
+      '$productVariant.size$',
+      '$productVariant.material$',
+      '$productVariant.price$',
+    ];
 
     const { page, limit, skip, sort, filter } = getPaginationParams(req.body, searchableFields);
 
-    const combinedFilter = {
-      ...filter,
-      is_deleted: false,
-    };
+    const combinedFilter = { ...filter, is_deleted: false };
 
-    const { count: totalCount, rows: addresses } = await orderItem.findAndCountAll({
+    const { count, rows } = await OrderItem.findAndCountAll({
       where: combinedFilter,
-      attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
-      include: [{ model: Product, as: 'product', attributes: ['name'], required: false }],
+      include: [
+        {
+          model: ProductVariant,
+          as: 'productVariant',
+          attributes: ['color', 'size', 'material', 'price'],
+        },
+      ],
       order: [sort],
       offset: skip,
       limit,
@@ -67,17 +91,17 @@ const listOfOrderItem = async (req, res) => {
       nest: true,
     });
 
-    if (totalCount === 0) {
-      logger.info(`List ${messages.NOT_FOUND}`);
-      return responseHandler.error(res, `List ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
+    if (count === 0) {
+      logger.info(`Order Items ${messages.NOT_FOUND}`);
+      return responseHandler.error(res, `Order Items ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    const paginatedData = formatPaginationResult(totalCount, page, limit, addresses);
+    const paginatedData = formatPaginationResult(count, page, limit, rows);
 
-    logger.info(`Order item list fetched ${messages.Is_SUCCESS}`);
+    logger.info(`Order Items list fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Order item list fetched ${messages.Is_SUCCESS}`,
+      `Order Items list fetched ${messages.Is_SUCCESS}`,
       paginatedData,
       StatusCodes.OK,
     );
@@ -94,27 +118,30 @@ const listOfOrderItem = async (req, res) => {
 const viewOrderItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const order_item = await orderItem.findOne({
-      where: {
-        id,
-        is_deleted: false,
-      },
-      attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
-      include: [{ model: Product, as: 'product', attributes: ['name'], required: false }],
+
+    const item = await OrderItem.findOne({
+      where: { id, is_deleted: false },
+      include: [
+        {
+          model: ProductVariant,
+          as: 'product_variant',
+          attributes: ['color', 'size', 'material', 'price'],
+        },
+      ],
       raw: true,
       nest: true,
     });
 
-    if (!order_item) {
-      logger.info(`Order item ${messages.NOT_FOUND}`);
-      return responseHandler.error(res, `Order item ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
+    if (!item) {
+      logger.info(`Order Item ${messages.NOT_FOUND}`);
+      return responseHandler.error(res, `Order Item ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    logger.info(`Order item details fetched ${messages.Is_SUCCESS}`);
+    logger.info(`Order Item details fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `order item details fetched ${messages.Is_SUCCESS}`,
-      order_item,
+      `Order Item details fetched ${messages.Is_SUCCESS}`,
+      item,
       StatusCodes.OK,
     );
   } catch (err) {
@@ -136,24 +163,19 @@ const updateOrderItem = async (req, res) => {
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
     }
 
-    const id = req.params.id;
+    const { id } = req.params;
 
-    const order_item = await orderItem.update(req.body, {
-      where: {
-        id,
-        is_deleted: false,
-      },
-    });
+    const orderItem = await OrderItem.update(req.body, { where: { id, is_deleted: false } });
 
-    if (order_item == 0) {
-      logger.warn(`Product ${messages.NOT_FOUND}`);
-      return responseHandler.error(res, `Product ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
+    if (orderItem == 0) {
+      logger.warn(`Order Item ${messages.NOT_FOUND}`);
+      return responseHandler.error(res, `Order Item ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    logger.info(`Product updated ${messages.Is_SUCCESS}`);
+    logger.info(`Order Item updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Product updated ${messages.Is_SUCCESS}`,
+      `Order Item updated ${messages.Is_SUCCESS}`,
       null,
       StatusCodes.ACCEPTED,
     );
@@ -167,24 +189,65 @@ const updateOrderItem = async (req, res) => {
   }
 };
 
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const orderItem = await OrderItem.findOne({ where: { id, is_deleted: false } });
+
+    if (!orderItem) {
+      logger.warn(messages.ORDER_ITEM_NOT_FOUND);
+      return responseHandler.error(res, messages.ORDER_ITEM_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+
+    const variant = await ProductVariant.findByPk(orderItem.product_variant_id);
+    if (!variant) {
+      logger.warn(messages.VARIANT_NOT_FOUND);
+      return responseHandler.error(res, messages.VARIANT_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+
+    if (status === Status.CANCELLED) {
+      await variant.update({ quantity: variant.quantity + orderItem.quantity });
+    }
+
+    await orderItem.update({ status });
+
+    logger.info(`Order status updated to ${status} ${messages.Is_SUCCESS}`);
+    return responseHandler.success(
+      res,
+      `Order status updated to ${status} ${messages.Is_SUCCESS}`,
+      null,
+      StatusCodes.OK,
+    );
+  } catch (err) {
+    logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
+    return responseHandler.error(
+      res,
+      messages.SOMETHING_WENT_WRONG,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+    );
+  }
+};
+
 const deleteOrderItem = async (req, res) => {
   try {
-    const id = req.params.id;
+    const { id } = req.params;
 
-    const order_item = await orderItem.update(
+    const orderItem = await OrderItem.update(
       { is_deleted: true },
       { where: { id, is_deleted: false } },
     );
 
-    if (order_item == 0) {
-      logger.warn(`Order item ${messages.NOT_FOUND}`);
-      return responseHandler.error(res, `Order item ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
+    if (orderItem == 0) {
+      logger.warn(`Order Item ${messages.NOT_FOUND}`);
+      return responseHandler.error(res, `Order Item ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    logger.info(`Order item deleted ${messages.Is_SUCCESS}`);
+    logger.info(`Order Item deleted ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Order item deleted ${messages.Is_SUCCESS}`,
+      `Order Item deleted ${messages.Is_SUCCESS}`,
       null,
       StatusCodes.OK,
     );
@@ -203,5 +266,6 @@ module.exports = {
   listOfOrderItem,
   viewOrderItem,
   updateOrderItem,
+  updateOrderStatus,
   deleteOrderItem,
 };
