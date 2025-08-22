@@ -58,7 +58,6 @@ const productVariant = sequelize.define(
     },
     status: {
       type: DataTypes.ENUM(status.AVAILABLE, status.NOT_AVAILABLE),
-      allowNull: false,
       defaultValue: status.AVAILABLE,
     },
     is_deleted: {
