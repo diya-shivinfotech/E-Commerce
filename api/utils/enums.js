@@ -13,4 +13,10 @@ const status = {
   NOT_AVAILABLE: 'Not Available ',
 };
 
-module.exports = { ROLE, STATUS, status };
+const Status = {
+  PROGRESS: 'Progress',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
+};
+
+module.exports = { ROLE, STATUS, status, Status };
