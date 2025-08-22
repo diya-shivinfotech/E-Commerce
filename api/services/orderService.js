@@ -9,6 +9,9 @@ const { orderValidation, updateOrderValidation } = require('../validation/orderV
 const { getPaginationParams, formatPaginationResult } = require('../utils/paginationHelper');
 const { Op } = require('sequelize');
 const { Status } = require('../utils/enums');
+const { City } = require('../model/cityModel');
+const { State } = require('../model/stateModel');
+const Country = require('../model/countryModel');
 
 const addOrder = async (req, res) => {
   try {
@@ -55,6 +58,10 @@ const listOfOrder = async (req, res) => {
       'billing_address',
       '$user.name$',
       '$address.address_line1$',
+      '$address.zip_code$',
+      '$address.city.city_name$',
+      '$address.state.state_name$',
+      '$address.country.country_name$',
     ];
 
     const { page, limit, skip, sort, filter } = getPaginationParams(req.body, searchableFields);
@@ -64,12 +71,22 @@ const listOfOrder = async (req, res) => {
       is_deleted: false,
     };
 
-    const { count: totalCount, rows: addresses } = await Order.findAndCountAll({
+    const { count: totalCount, rows: orders } = await Order.findAndCountAll({
       where: combinedFilter,
       attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
       include: [
         { model: User, as: 'user', attributes: ['name'], required: false },
-        { model: Address, as: 'address', attributes: ['address_line1'], required: false },
+        {
+          model: Address,
+          as: 'address',
+          attributes: ['address_line1', 'zip_code'],
+          required: false,
+          include: [
+            { model: City, as: 'city', attributes: ['city_name'], required: false },
+            { model: State, as: 'state', attributes: ['state_name'], required: false },
+            { model: Country, as: 'country', attributes: ['country_name'], required: false },
+          ],
+        },
       ],
       order: [sort],
       offset: skip,
@@ -83,7 +100,7 @@ const listOfOrder = async (req, res) => {
       return responseHandler.error(res, `List ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    const paginatedData = formatPaginationResult(totalCount, page, limit, addresses);
+    const paginatedData = formatPaginationResult(totalCount, page, limit, orders);
 
     logger.info(`Order list fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
@@ -106,6 +123,7 @@ const viewOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const user_id = req.user.id;
+
     const order = await Order.findOne({
       where: {
         id,
@@ -114,8 +132,23 @@ const viewOrder = async (req, res) => {
       },
       attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
       include: [
-        { model: User, as: 'user', attributes: ['name'], required: false },
-        { model: Address, as: 'address', attributes: ['address_line1'], required: false },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name'],
+          required: false,
+        },
+        {
+          model: Address,
+          as: 'address',
+          attributes: ['address_line1', 'zip_code'],
+          include: [
+            { model: Country, as: 'country', attributes: ['country_name'], required: false },
+            { model: State, as: 'state', attributes: ['state_name'], required: false },
+            { model: City, as: 'city', attributes: ['city_name'], required: false },
+          ],
+          required: false,
+        },
       ],
       raw: true,
       nest: true,
@@ -154,26 +187,15 @@ const updateOrderDetails = async (req, res) => {
 
     const { id } = req.params;
     const userId = req.user.id;
-    const { status: newStatus } = req.body;
 
-    if (newStatus !== Status.CANCELLED) {
-      return responseHandler.error(
-        res,
-        `You only ${Status.CANCELLED} your order.`,
-        StatusCodes.BAD_REQUEST,
-      );
-    }
-    const [updated] = await Order.update(
-      { status: newStatus },
-      {
-        where: {
-          id,
-          user_id: userId,
-          status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
-          is_deleted: false,
-        },
+    const [updated] = await Order.update(req.body, {
+      where: {
+        id,
+        user_id: userId,
+        is_deleted: false,
+        status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
       },
-    );
+    });
 
     if (updated === 0) {
       logger.warn(`Order ${messages.NOT_FOUND}`);

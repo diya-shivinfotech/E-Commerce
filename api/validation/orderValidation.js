@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const { Status } = require('../utils/enums');
 
 const orderValidation = Joi.object({
   address_id: Joi.number().required().messages({
@@ -10,13 +9,7 @@ const orderValidation = Joi.object({
     'number.base': 'Total amount must be a number.',
     'any.required': 'Total amount is required.',
   }),
-  status: Joi.string()
-    .valid(Status.PROGRESS, Status.DELIVERED, Status.CANCELLED)
-    .default(Status.PROGRESS)
-    .messages({
-      'any.only': `Status must be one of: ${Status.PROGRESS}, ${Status.DELIVERED}, ${Status.CANCELLED}.`,
-      'string.base': 'Status must be a string.',
-    }),
+
   shipping_address: Joi.string().required().messages({
     'string.base': 'Shipping address must be a string.',
     'any.required': 'Shipping address is required.',
@@ -35,13 +28,6 @@ const updateOrderValidation = Joi.object({
     'number.base': 'Total amount must be a number.',
     'number.positive': 'Total amount must be greater than zero.',
   }),
-  status: Joi.string()
-    .valid(Status.PROGRESS, Status.DELIVERED, Status.CANCELLED)
-    .optional()
-    .messages({
-      'any.only': `Status must be one of: ${Status.PROGRESS}, ${Status.DELIVERED}, ${Status.CANCELLED}.`,
-      'string.base': 'Status must be a string.',
-    }),
   shipping_address: Joi.string().optional().messages({
     'string.base': 'Shipping address must be a string.',
   }),
