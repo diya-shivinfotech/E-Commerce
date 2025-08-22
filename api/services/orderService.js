@@ -207,7 +207,6 @@ const viewOrder = async (req, res) => {
 const updateOrderDetails = async (req, res) => {
   try {
     const { error } = updateOrderValidation.validate(req.body);
-
     if (error) {
       logger.warn(`Validation Error: ${error.details[0].message}`);
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
@@ -216,19 +215,22 @@ const updateOrderDetails = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const order = await Order.update(req.body, {
+    const order = await Order.findOne({
       where: {
         id,
         user_id: userId,
         is_deleted: false,
         status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
       },
+      include: [{ model: User, as: 'user', attributes: ['name'] }],
     });
 
-    if (order == 0) {
+    if (!order) {
       logger.warn(`Order ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
+
+    await order.update(req.body);
 
     logger.info(`Order updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
