@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const { status } = require('../utils/enums');
 
 const addProductVariantValidation = Joi.object({
   category_id: Joi.number().integer().required().messages({
@@ -40,14 +39,6 @@ const addProductVariantValidation = Joi.object({
     'number.base': 'Quantity must be a valid number.',
     'any.required': 'Quantity is required.',
   }),
-  status: Joi.string()
-    .valid(...Object.values(status))
-    .required()
-    .messages({
-      'any.only': `Status must be one of: ${Object.values(status).join(', ')}`,
-      'string.base': 'Status must be a string.',
-      'any.required': 'Status is required.',
-    }),
   image: Joi.string().optional().allow('').messages({
     'string.base': 'Image must be a string (URL, path, or name).',
   }),
@@ -83,13 +74,6 @@ const updateProductVariantValidation = Joi.object({
   quantity: Joi.number().optional().messages({
     'number.base': 'Quantity must be a valid number.',
   }),
-  status: Joi.string()
-    .valid(...Object.values(status))
-    .optional()
-    .messages({
-      'any.only': `Status must be one of: ${Object.values(status).join(', ')}`,
-      'string.base': 'Status must be a string.',
-    }),
   image: Joi.string().optional().allow('').messages({
     'string.base': 'Image must be a string (URL, path, or name).',
   }),
