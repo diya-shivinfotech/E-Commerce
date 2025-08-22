@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const { Status } = require('../utils/enums');
 
 const orderValidation = Joi.object({
   address_id: Joi.number().required().messages({
