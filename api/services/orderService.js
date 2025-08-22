@@ -12,6 +12,7 @@ const { Status } = require('../utils/enums');
 const { City } = require('../model/cityModel');
 const { State } = require('../model/stateModel');
 const Country = require('../model/countryModel');
+const productVariant = require('../model/productVariantModel');
 
 const addOrder = async (req, res) => {
   try {
@@ -22,14 +23,30 @@ const addOrder = async (req, res) => {
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
     }
 
-    const { address_id, total_amount, shipping_address, billing_address } = req.body;
-
+    const {
+      address_id,
+      product_variant_id,
+      quantity,
+      shipping_address,
+      billing_address,
+    } = req.body;
     const user_id = req.user.id;
+
+    const variant = await productVariant.findByPk(product_variant_id);
+
+    if (!variant || variant.quantity < quantity) {
+      logger.warn(messages.OUT_OF_STOCK);
+      return responseHandler.error(res, messages.OUT_OF_STOCK, StatusCodes.BAD_REQUEST);
+    }
+
+    variant.quantity -= quantity;
+    await variant.save();
 
     await Order.create({
       user_id,
       address_id,
-      total_amount,
+      product_variant_id,
+      quantity,
       shipping_address,
       billing_address,
     });
@@ -62,6 +79,11 @@ const listOfOrder = async (req, res) => {
       '$address.city.city_name$',
       '$address.state.state_name$',
       '$address.country.country_name$',
+      '$product_variant.color$',
+      '$product_variant.size$',
+      '$product_variant.material$',
+      '$product_variant.price$',
+      '$product_variant.quantity$',
     ];
 
     const { page, limit, skip, sort, filter } = getPaginationParams(req.body, searchableFields);
@@ -86,6 +108,12 @@ const listOfOrder = async (req, res) => {
             { model: State, as: 'state', attributes: ['state_name'], required: false },
             { model: Country, as: 'country', attributes: ['country_name'], required: false },
           ],
+        },
+        {
+          model: productVariant,
+          as: 'product_variant',
+          attributes: ['color', 'size', 'material', 'price', 'quantity'],
+          required: false,
         },
       ],
       order: [sort],
@@ -149,6 +177,12 @@ const viewOrder = async (req, res) => {
           ],
           required: false,
         },
+        {
+          model: productVariant,
+          as: 'product_variant',
+          attributes: ['color', 'size', 'material', 'price'],
+          required: false,
+        },
       ],
       raw: true,
       nest: true,
@@ -159,11 +193,13 @@ const viewOrder = async (req, res) => {
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
+    const grandTotal = (order.quantity || 0) * (order.product_variant?.price || 0);
+
     logger.info(`Order details fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
       `Order details fetched ${messages.Is_SUCCESS}`,
-      order,
+      { ...order, grandTotal },
       StatusCodes.OK,
     );
   } catch (err) {
@@ -222,6 +258,7 @@ const updateOrderDetails = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { error } = updateOrderValidation.validate(req.body);
+
     if (error) {
       logger.warn(`Validation Error: ${error.details[0].message}`);
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
@@ -230,21 +267,32 @@ const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const newStatus = req.body.status;
 
-    const [updated] = await Order.update(
-      { status: newStatus },
-      {
-        where: {
-          id,
-          status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
-          is_deleted: false,
-        },
+    const order = await Order.findOne({
+      where: {
+        id,
+        status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
       },
-    );
+      include: [{ model: productVariant, as: 'product_variant' }],
+    });
 
-    if (updated === 0) {
+    if (!order) {
       logger.warn(`Order ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
+
+    if (newStatus === Status.CANCELLED && order.product_variant) {
+      order.product_variant.quantity += order.quantity;
+      await order.product_variant.save();
+    } else if (newStatus === Status.DELIVERED && order.product_variant) {
+      order.product_variant.quantity -= order.quantity;
+
+      if (order.product_variant.quantity < 0) order.product_variant.quantity = 0;
+
+      await order.product_variant.save();
+    }
+
+    order.status = newStatus;
+    await order.save();
 
     logger.info(`Order status ${newStatus} ${messages.Is_SUCCESS}`);
     return responseHandler.success(
