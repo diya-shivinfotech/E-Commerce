@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
 const User = require('./authModel');
+const productVariant = require('./productVariantModel');
 
 const Cart = sequelize.define(
   'Cart',
@@ -13,8 +14,16 @@ const Cart = sequelize.define(
         key: 'id',
       },
     },
-    total_amount: {
-      type: DataTypes.FLOAT,
+    product_variant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: productVariant,
+        key: 'id',
+      },
+    },
+    quantity: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     is_deleted: {
@@ -30,5 +39,6 @@ const Cart = sequelize.define(
 );
 
 Cart.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+Cart.belongsTo(productVariant, { foreignKey: 'product_variant_id', as: 'product_variant' });
 
 module.exports = Cart;
