@@ -1,5 +1,4 @@
 const Joi = require('joi');
-const { status } = require('../utils/enums');
 
 const addProductVariantValidation = Joi.object({
   category_id: Joi.number().integer().required().messages({
