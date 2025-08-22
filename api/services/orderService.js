@@ -23,13 +23,8 @@ const addOrder = async (req, res) => {
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
     }
 
-    const {
-      address_id,
-      product_variant_id,
-      quantity,
-      shipping_address,
-      billing_address,
-    } = req.body;
+    const { address_id, product_variant_id, quantity, shipping_address, billing_address } =
+      req.body;
     const user_id = req.user.id;
 
     const variant = await productVariant.findByPk(product_variant_id);
@@ -38,9 +33,6 @@ const addOrder = async (req, res) => {
       logger.warn(messages.OUT_OF_STOCK);
       return responseHandler.error(res, messages.OUT_OF_STOCK, StatusCodes.BAD_REQUEST);
     }
-
-    variant.quantity -= quantity;
-    await variant.save();
 
     await Order.create({
       user_id,
@@ -59,7 +51,7 @@ const addOrder = async (req, res) => {
       StatusCodes.CREATED,
     );
   } catch (err) {
-    logger.error(err.message || messages.SOMETHING_WENT_WRONG);
+    logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
@@ -224,7 +216,7 @@ const updateOrderDetails = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const [updated] = await Order.update(req.body, {
+    const order = await Order.update(req.body, {
       where: {
         id,
         user_id: userId,
@@ -233,7 +225,7 @@ const updateOrderDetails = async (req, res) => {
       },
     });
 
-    if (updated === 0) {
+    if (order == 0) {
       logger.warn(`Order ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
@@ -280,14 +272,15 @@ const updateOrderStatus = async (req, res) => {
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    if (newStatus === Status.CANCELLED && order.product_variant) {
-      order.product_variant.quantity += order.quantity;
-      await order.product_variant.save();
-    } else if (newStatus === Status.DELIVERED && order.product_variant) {
+    if (newStatus === Status.CONFIRMED && order.product_variant) {
+      if (order.product_variant.quantity < order.quantity) {
+        logger.warn(messages.OUT_OF_STOCK);
+        return responseHandler.error(res, messages.OUT_OF_STOCK, StatusCodes.BAD_REQUEST);
+      }
       order.product_variant.quantity -= order.quantity;
-
-      if (order.product_variant.quantity < 0) order.product_variant.quantity = 0;
-
+      await order.product_variant.save();
+    } else if (newStatus === Status.CANCELLED && order.product_variant) {
+      order.product_variant.quantity += order.quantity;
       await order.product_variant.save();
     }
 
