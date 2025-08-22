@@ -146,8 +146,8 @@ const viewCart = async (req, res) => {
         id: cart.id,
         quantity: cart.quantity,
         user: cart.user,
-        product_variant: cart.product_variant, 
-        grandTotal, 
+        product_variant: cart.product_variant,
+        grandTotal,
       },
       StatusCodes.OK,
     );
@@ -164,7 +164,6 @@ const viewCart = async (req, res) => {
 const updateCart = async (req, res) => {
   try {
     const { error } = updateCartValidation.validate(req.body);
-
     if (error) {
       logger.warn(`Validation Error: ${error.details[0].message}`);
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
@@ -173,7 +172,7 @@ const updateCart = async (req, res) => {
     const id = req.params.id;
     const user_id = req.user.id;
 
-    const cart = await Cart.update(req.body, {
+    const cart = await Cart.findOne({
       where: {
         id,
         user_id,
@@ -181,10 +180,12 @@ const updateCart = async (req, res) => {
       },
     });
 
-    if (cart == 0) {
+    if (!cart) {
       logger.warn(`Cart ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Cart ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
+
+    await cart.update(req.body);
 
     logger.info(`Cart updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
