@@ -9,6 +9,10 @@ const { orderValidation, updateOrderValidation } = require('../validation/orderV
 const { getPaginationParams, formatPaginationResult } = require('../utils/paginationHelper');
 const { Op } = require('sequelize');
 const { Status } = require('../utils/enums');
+const { City } = require('../model/cityModel');
+const { State } = require('../model/stateModel');
+const Country = require('../model/countryModel');
+const productVariant = require('../model/productVariantModel');
 
 const addOrder = async (req, res) => {
   try {
@@ -19,14 +23,22 @@ const addOrder = async (req, res) => {
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
     }
 
-    const { address_id, total_amount, shipping_address, billing_address } = req.body;
-
+    const { address_id, product_variant_id, quantity, shipping_address, billing_address } =
+      req.body;
     const user_id = req.user.id;
+
+    const variant = await productVariant.findByPk(product_variant_id);
+
+    if (!variant || variant.quantity < quantity) {
+      logger.warn(messages.OUT_OF_STOCK);
+      return responseHandler.error(res, messages.OUT_OF_STOCK, StatusCodes.BAD_REQUEST);
+    }
 
     await Order.create({
       user_id,
       address_id,
-      total_amount,
+      product_variant_id,
+      quantity,
       shipping_address,
       billing_address,
     });
@@ -39,7 +51,7 @@ const addOrder = async (req, res) => {
       StatusCodes.CREATED,
     );
   } catch (err) {
-    logger.error(err.message || messages.SOMETHING_WENT_WRONG);
+    logger.error(`${messages.SOMETHING_WENT_WRONG}: ${err.message}`);
     return responseHandler.error(
       res,
       messages.SOMETHING_WENT_WRONG,
@@ -55,6 +67,15 @@ const listOfOrder = async (req, res) => {
       'billing_address',
       '$user.name$',
       '$address.address_line1$',
+      '$address.zip_code$',
+      '$address.city.city_name$',
+      '$address.state.state_name$',
+      '$address.country.country_name$',
+      '$product_variant.color$',
+      '$product_variant.size$',
+      '$product_variant.material$',
+      '$product_variant.price$',
+      '$product_variant.quantity$',
     ];
 
     const { page, limit, skip, sort, filter } = getPaginationParams(req.body, searchableFields);
@@ -64,12 +85,28 @@ const listOfOrder = async (req, res) => {
       is_deleted: false,
     };
 
-    const { count: totalCount, rows: addresses } = await Order.findAndCountAll({
+    const { count: totalCount, rows: orders } = await Order.findAndCountAll({
       where: combinedFilter,
       attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
       include: [
         { model: User, as: 'user', attributes: ['name'], required: false },
-        { model: Address, as: 'address', attributes: ['address_line1'], required: false },
+        {
+          model: Address,
+          as: 'address',
+          attributes: ['address_line1', 'zip_code'],
+          required: false,
+          include: [
+            { model: City, as: 'city', attributes: ['city_name'], required: false },
+            { model: State, as: 'state', attributes: ['state_name'], required: false },
+            { model: Country, as: 'country', attributes: ['country_name'], required: false },
+          ],
+        },
+        {
+          model: productVariant,
+          as: 'product_variant',
+          attributes: ['color', 'size', 'material', 'price', 'quantity'],
+          required: false,
+        },
       ],
       order: [sort],
       offset: skip,
@@ -83,7 +120,7 @@ const listOfOrder = async (req, res) => {
       return responseHandler.error(res, `List ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    const paginatedData = formatPaginationResult(totalCount, page, limit, addresses);
+    const paginatedData = formatPaginationResult(totalCount, page, limit, orders);
 
     logger.info(`Order list fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
@@ -106,6 +143,7 @@ const viewOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const user_id = req.user.id;
+
     const order = await Order.findOne({
       where: {
         id,
@@ -114,8 +152,29 @@ const viewOrder = async (req, res) => {
       },
       attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
       include: [
-        { model: User, as: 'user', attributes: ['name'], required: false },
-        { model: Address, as: 'address', attributes: ['address_line1'], required: false },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name'],
+          required: false,
+        },
+        {
+          model: Address,
+          as: 'address',
+          attributes: ['address_line1', 'zip_code'],
+          include: [
+            { model: Country, as: 'country', attributes: ['country_name'], required: false },
+            { model: State, as: 'state', attributes: ['state_name'], required: false },
+            { model: City, as: 'city', attributes: ['city_name'], required: false },
+          ],
+          required: false,
+        },
+        {
+          model: productVariant,
+          as: 'product_variant',
+          attributes: ['color', 'size', 'material', 'price'],
+          required: false,
+        },
       ],
       raw: true,
       nest: true,
@@ -126,11 +185,13 @@ const viewOrder = async (req, res) => {
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
+    const grandTotal = (order.quantity || 0) * (order.product_variant?.price || 0);
+
     logger.info(`Order details fetched ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
       `Order details fetched ${messages.Is_SUCCESS}`,
-      order,
+      { ...order, grandTotal },
       StatusCodes.OK,
     );
   } catch (err) {
@@ -146,7 +207,6 @@ const viewOrder = async (req, res) => {
 const updateOrderDetails = async (req, res) => {
   try {
     const { error } = updateOrderValidation.validate(req.body);
-
     if (error) {
       logger.warn(`Validation Error: ${error.details[0].message}`);
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
@@ -154,31 +214,23 @@ const updateOrderDetails = async (req, res) => {
 
     const { id } = req.params;
     const userId = req.user.id;
-    const { status: newStatus } = req.body;
 
-    if (newStatus !== Status.CANCELLED) {
-      return responseHandler.error(
-        res,
-        `You only ${Status.CANCELLED} your order.`,
-        StatusCodes.BAD_REQUEST,
-      );
-    }
-    const [updated] = await Order.update(
-      { status: newStatus },
-      {
-        where: {
-          id,
-          user_id: userId,
-          status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
-          is_deleted: false,
-        },
+    const order = await Order.findOne({
+      where: {
+        id,
+        user_id: userId,
+        is_deleted: false,
+        status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
       },
-    );
+      include: [{ model: User, as: 'user', attributes: ['name'] }],
+    });
 
-    if (updated === 0) {
+    if (!order) {
       logger.warn(`Order ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
+
+    await order.update(req.body);
 
     logger.info(`Order updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
@@ -200,6 +252,7 @@ const updateOrderDetails = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { error } = updateOrderValidation.validate(req.body);
+
     if (error) {
       logger.warn(`Validation Error: ${error.details[0].message}`);
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
@@ -208,21 +261,33 @@ const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const newStatus = req.body.status;
 
-    const [updated] = await Order.update(
-      { status: newStatus },
-      {
-        where: {
-          id,
-          status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
-          is_deleted: false,
-        },
+    const order = await Order.findOne({
+      where: {
+        id,
+        status: { [Op.notIn]: [Status.DELIVERED, Status.CANCELLED] },
       },
-    );
+      include: [{ model: productVariant, as: 'product_variant' }],
+    });
 
-    if (updated === 0) {
+    if (!order) {
       logger.warn(`Order ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Order ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
+
+    if (newStatus === Status.CONFIRMED && order.product_variant) {
+      if (order.product_variant.quantity < order.quantity) {
+        logger.warn(messages.OUT_OF_STOCK);
+        return responseHandler.error(res, messages.OUT_OF_STOCK, StatusCodes.BAD_REQUEST);
+      }
+      order.product_variant.quantity -= order.quantity;
+      await order.product_variant.save();
+    } else if (newStatus === Status.CANCELLED && order.product_variant) {
+      order.product_variant.quantity += order.quantity;
+      await order.product_variant.save();
+    }
+
+    order.status = newStatus;
+    await order.save();
 
     logger.info(`Order status ${newStatus} ${messages.Is_SUCCESS}`);
     return responseHandler.success(
