@@ -23,4 +23,5 @@ module.exports = {
   SOMETHING_WENT_WRONG: 'Something went wrong. Please try again.',
   ACCESS_DENIED: 'Access denied, you do not have access.',
   UNAUTHORIZED: 'Unauthorized access.',
+  OUT_OF_STOCK: 'Product out of stock',
 };
