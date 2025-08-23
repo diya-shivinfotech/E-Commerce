@@ -7,6 +7,9 @@ const Order = require('../model/orderModel');
 const User = require('../model/authModel');
 const { ROLE, STATUS } = require('../utils/enums');
 const Address = require('../model/addressModel');
+const { City } = require('../model/cityModel');
+const { State } = require('../model/stateModel');
+const Country = require('../model/countryModel');
 
 const listUsers = async (req, res) => {
   try {
@@ -63,6 +66,10 @@ const listOrders = async (req, res) => {
       'billing_address',
       '$user.name$',
       '$address.address_line1$',
+      '$address.zip_code$',
+      '$address.city.city_name$',
+      '$address.state.state_name$',
+      '$address.country.country_name$',
     ];
 
     const { page, limit, skip, sort, filter } = getPaginationParams(req.body, searchableFields);
@@ -87,6 +94,11 @@ const listOrders = async (req, res) => {
           as: 'address',
           attributes: ['address_line1', 'zip_code'],
           required: false,
+          include: [
+            { model: City, as: 'city', attributes: ['city_name'], required: false },
+            { model: State, as: 'state', attributes: ['state_name'], required: false },
+            { model: Country, as: 'country', attributes: ['country_name'], required: false },
+          ],
         },
       ],
       order: [sort],
