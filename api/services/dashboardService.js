@@ -16,22 +16,44 @@ const dashboardCounts = async (req, res) => {
       where: { is_deleted: false },
     });
 
-    const orderStatusCounts = await Order.findAll({
-      attributes: ['status', [Order.sequelize.fn('COUNT', Order.sequelize.col('status')), 'count']],
-      where: { is_deleted: false },
-      group: ['status'],
+    const orderStatusCounts = await Order.findOne({
+      attributes: [
+        [
+          Order.sequelize.fn(
+            'COUNT',
+            Order.sequelize.literal(
+              `CASE WHEN status = '${Status.PROGRESS}' AND is_deleted = false THEN 1 END`,
+            ),
+          ),
+          'progressCount',
+        ],
+        [
+          Order.sequelize.fn(
+            'COUNT',
+            Order.sequelize.literal(
+              `CASE WHEN status = '${Status.DELIVERED}' AND is_deleted = false THEN 1 END`,
+            ),
+          ),
+          'deliveredCount',
+        ],
+        [
+          Order.sequelize.fn(
+            'COUNT',
+            Order.sequelize.literal(
+              `CASE WHEN status = '${Status.CANCELLED}' AND is_deleted = false THEN 1 END`,
+            ),
+          ),
+          'cancelledCount',
+        ],
+      ],
       raw: true,
     });
 
     const statusCounts = {
-      [Status.PROGRESS]: 0,
-      [Status.DELIVERED]: 0,
-      [Status.CANCELLED]: 0,
+      [Status.PROGRESS]: orderStatusCounts.progressCount || 0,
+      [Status.DELIVERED]: orderStatusCounts.deliveredCount || 0,
+      [Status.CANCELLED]: orderStatusCounts.cancelledCount || 0,
     };
-
-    orderStatusCounts.forEach((row) => {
-      statusCounts[row.status] = row.count;
-    });
 
     const result = {
       totalUsers,
