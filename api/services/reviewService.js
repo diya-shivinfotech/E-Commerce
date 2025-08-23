@@ -176,7 +176,9 @@ const deleteReview = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const review = await Review.update({ is_deleted: true }, { where: { id, is_deleted: false } });
+    const review = await Review.destroy({
+      where: { id },
+    });
 
     if (review == 0) {
       logger.warn(`Review ${messages.NOT_FOUND}`);
