@@ -102,9 +102,7 @@ const viewReview = async (req, res) => {
         is_deleted: false,
       },
       attributes: { exclude: ['is_deleted', 'createdAt', 'updatedAt'] },
-      include: [
-        { model: User, as: 'user', attributes: ['name'], required: false },
-      ],
+      include: [{ model: User, as: 'user', attributes: ['name'], required: false }],
       raw: true,
       nest: true,
     });
@@ -134,7 +132,6 @@ const viewReview = async (req, res) => {
 const updateReview = async (req, res) => {
   try {
     const { error } = updateReviewValidation.validate(req.body);
-
     if (error) {
       logger.warn(`Validation Error: ${error.details[0].message}`);
       return responseHandler.error(res, error.details[0].message, StatusCodes.BAD_REQUEST);
@@ -143,7 +140,7 @@ const updateReview = async (req, res) => {
     const id = req.params.id;
     const user_id = req.user.id;
 
-    const review = await Review.update(req.body, {
+    const review = await Review.findOne({
       where: {
         id,
         user_id,
@@ -151,15 +148,17 @@ const updateReview = async (req, res) => {
       },
     });
 
-    if (review == 0) {
-      logger.warn(`Review item ${messages.NOT_FOUND}`);
-      return responseHandler.error(res, `Review item ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
+    if (!review) {
+      logger.warn(`Review ${messages.NOT_FOUND}`);
+      return responseHandler.error(res, `Review ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
 
-    logger.info(`Review item updated ${messages.Is_SUCCESS}`);
+    await review.update(req.body);
+
+    logger.info(`Review updated ${messages.Is_SUCCESS}`);
     return responseHandler.success(
       res,
-      `Review item updated ${messages.Is_SUCCESS}`,
+      `Review updated ${messages.Is_SUCCESS}`,
       null,
       StatusCodes.ACCEPTED,
     );
@@ -177,10 +176,7 @@ const deleteReview = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const review = await Review.update(
-      { is_deleted: true },
-      { where: { id, is_deleted: false } },
-    );
+    const review = await Review.update({ is_deleted: true }, { where: { id, is_deleted: false } });
 
     if (review == 0) {
       logger.warn(`Review ${messages.NOT_FOUND}`);
@@ -209,5 +205,5 @@ module.exports = {
   listOfReviews,
   viewReview,
   updateReview,
-  deleteReview
+  deleteReview,
 };
