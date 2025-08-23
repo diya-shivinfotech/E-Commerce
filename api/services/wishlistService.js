@@ -92,12 +92,11 @@ const deleteWishlist = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const wishlist = await Wishlist.update(
-      { is_deleted: true },
-      { where: { id, is_deleted: false } },
-    );
+    const deletedWishlist = await Wishlist.destroy({
+      where: { id },
+    });
 
-    if (wishlist == 0) {
+    if (deletedWishlist === 0) {
       logger.warn(`Wishlist ${messages.NOT_FOUND}`);
       return responseHandler.error(res, `Wishlist ${messages.NOT_FOUND}`, StatusCodes.NOT_FOUND);
     }
