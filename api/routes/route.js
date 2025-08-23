@@ -12,6 +12,7 @@ const cartRoute = require('./cartRoute');
 const wishlistRoute = require('./wishlistRoute');
 const reviewRoute = require('./reviewRoute');
 const dashboardRoute = require('./dashboardRoute');
+const reportRoute = require('./reportRoute');
 
 router.use('/auth', authRoute);
 router.use('/location', locationRoute);
@@ -25,5 +26,6 @@ router.use('/cart', cartRoute);
 router.use('/wishlist', wishlistRoute);
 router.use('/review',reviewRoute);
 router.use('/dashboard',dashboardRoute);
+router.use('/report',reportRoute);
 
 module.exports = router;

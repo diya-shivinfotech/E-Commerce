@@ -49,7 +49,7 @@ const Address = sequelize.define(
       allowNull: true,
     },
     zip_code: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     is_deleted: {
