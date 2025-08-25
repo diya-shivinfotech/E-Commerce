@@ -19,4 +19,10 @@ const Status = {
   CANCELLED: 'Cancelled',
 };
 
-module.exports = { ROLE, STATUS, status, Status };
+const GRAPH = {
+  YEARLY: 'Yearly',
+  MONTHLY: 'Monthly',
+  WEEKLY: 'Weekly',
+};
+
+module.exports = { ROLE, STATUS, status, Status, GRAPH };
